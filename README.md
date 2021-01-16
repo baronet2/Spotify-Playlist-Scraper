@@ -7,7 +7,7 @@ The relevant classes and functions are contained in `SpotifyPlaylistScraper.py`.
 from SpotifyPlaylistScraper import *
 ```
 
-You may need to install the libraries `selenium`, `time`, `bs4`, and `re` using `pip` or `conda`.
+You may need to install the libraries `selenium`, `time`, `bs4`, and `re` using `pip` or `conda`. You may also need to download the latest `chromedriver.exe` from https://chromedriver.chromium.org/downloads.
 
 Playlists are loaded into a `Playlist` object. To load a playlist, use the link of the public Spotify plalist as follows:
 ```python
@@ -15,7 +15,7 @@ p = Playlist('https://open.spotify.com/playlist/2X38qrMnKVxbZMSrE72Ovh')
 print(p)
 ```
 
-This may take some time, and you will have to keep the broswer window it creates open.
+This may take some time, and you will have to keep the broswer window it creates open and visible.
 
 To get the list of songs in a playlist, use `p.songs`. Each song is a `Song` object, which has several useful attributes and methods:
 ```python
