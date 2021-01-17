@@ -5,7 +5,7 @@ This file provides tools used to collect and analyze information from Spotify pl
 
 Feel free to use this code so long as scraping Spotify playlists remains legal according to https://open.spotify.com/robots.txt.
 Please cite this repository in your code or any reports which make use of this tool.
-Comments, questions, and requests can be made at https://github.com/baronet2/Spotify-Playlist-Scraper/.
+Comments, questions, and feature requests can be made at https://github.com/baronet2/Spotify-Playlist-Scraper/.
 """
 
 from selenium import webdriver
