@@ -104,7 +104,7 @@ class Remix:
 		fixed_type = inputs.pop(0) if inputs else input("Enter actual remix type or 'g' if the current type is good: ")
 		self.remix_type = fixed_type if fixed_type != 'g' else self.remix_type
 
-		self.__fixed = True
+		self.mark_as_fixed()
 
 	def fixed(self):
 		""" Return bool, whether remix is fixed """
@@ -137,7 +137,7 @@ class Song:
 
 	Attributes:
 		num: int, song number in Spotify playlist
-		song: str, name of song as it appears in Spotify
+		name: str, name of song as it appears in Spotify
 		artists: list[str], list of artists as listed in Spotify
 		album: str, album name as listed in Spotify
 		duration: _Duration, song duration as obtained from Spotify
@@ -191,23 +191,30 @@ class Song:
 		
 		self.remix = Remix(remix_details, self.artists) if remix_details else None
 
-		if 'feat. ' in song and not self.featured_artists:
+		if 'feat. ' in song and not self.featured_artists: # Missing featured artist
+			self.__fixed=False
+		if not self.original_name: # Missing original name
 			self.__fixed=False
 	
 	def fix(self, inputs=None):
 		"""
 		Fix song's remix information and/or featured artist information.
-		inputs: [[remix_code, [artists, description, type]], [feat_artist_code, feat_artists]], list of inputs
-			See documentation for fix_remix() and fix_featured_artists(), respectively
+		inputs: [[remix_code, [artists, description, type]], [feat_artist_code, feat_artists], original_name], list of inputs
+			See documentation for fix_remix(), fix_featured_artists(), and fix_original_name(), respectively
 		"""
 		if self.remix and not self.remix.fixed():
 			self.fix_remix(inputs.pop(0) if inputs else None)
 		if not self.__fixed:
 			self.fix_featured_artists(inputs.pop(0) if inputs else None)
+		if not self.original_name:
+			self.fix_original_name(inputs.pop(0) if inputs else None)
 
-	def fix_original_name(self, updated_name):
-		""" Manually update original song name """
-		self.original_name = updated_name
+	def fix_original_name(self, updated_name=None):
+		"""
+		Manually update original song name.
+		updated_name: str, original name of song
+		"""
+		self.original_name = updated_name if updated_name else input("Enter original name of song (excluding remix/featured artist(s) information: ")
 
 	def fixed(self):
 		""" Return bool, whether song, and its remix, if applicable, are marked as fixed """
@@ -222,8 +229,8 @@ class Song:
 		"""
 		if not inputs:
 			print("Song:", self)
-			print("Current featured artists:", self.featured_artists)
-			inp = input("Enter 1 to approve current list, 2 to add to current list, 3 to overwrite list, or anything else to skip. -->")
+			print("Current list of featured artists:", self.featured_artists)
+			inp = input("Enter 1 to approve current list of featured artists, 2 to add to current list, 3 to overwrite list, or anything else to skip. -->")
 		else:
 			inp = inputs[0]		
 		if inp == '2':
@@ -232,6 +239,8 @@ class Song:
 			self.featured_artists = [a.strip() for a in (inputs[1] if inputs else input("Enter featured artists separated by commas. -->")).split(',')]
 		if inp in '123':
 			self.__fixed = True
+		if '' in self.featured_artists:
+			self.featured_artists.remove('')
 
 	def fix_remix(self, inputs=None):
 		"""
@@ -317,9 +326,14 @@ class Playlist:
 
 		if fixing_inputs:
 			self.fix(inputs=fixing_inputs, verbose=verbose)
-
-		if verbose and not fixing_inputs:
-			print("Done!")
+		elif verbose:
+			print("Done loading playlist!")
+			num_to_fix = sum([not s.fixed() for s in self.songs])
+			if num_to_fix:
+				print(num_to_fix, "song" + ("s" if num_to_fix > 1 else "") + " may need fixing.")
+			else:
+				print("No songs need fixing.")
+			
 
 	def __update_song_list(self, main_soup):
 		songs_list = main_soup.find_all('div', {'as': 'div'})
@@ -338,7 +352,7 @@ class Playlist:
 		"""
 		Fix all songs in playlist not marked as fixed.
 		inputs: list[inputs], list of inputs to Song.fix() per song to be fixed
-			Each element has format [[remix_code, [artists, description, type]], [feat_artist_code, feat_artists]]
+			Each element has format [[remix_code, [artists, description, type]], [feat_artist_code, feat_artists], original_name]
 			See Song.fix() documentation for more details
 		verbose: bool, whether to print updates while loading
 		"""
